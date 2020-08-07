@@ -8,14 +8,23 @@ WGCNA, heatmap3, tidyverse, readxl, openxlsx, qtl, corrplot, BiocManager, allez.
 After downloading the full repositroy from GitHub, open RStudio. Go to the file menu and choose "Existing Directory." Click browse and navigate to the folder containing the MetaNetwork repository. Run the following code in the Console to install MetaNetwork's required packages:  
 
 install.packages("WGCNA")
+
 install.packages("heatmap3")
+
 install.packages("tidyverse")
+
 install.packages("readxl")
+
 install.packages("openxlsx")
+
 install.packages("qtl")
+
 install.packages("corrplot")
+
 install.packages("BiocManager")
+
 install.packages("allez")
+
 install.packages("devtools")
 
 Run the following code in the console to launch MetaNetwork: 
