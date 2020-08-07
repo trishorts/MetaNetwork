@@ -47,3 +47,7 @@ Gene Ontology Enrichment Analysis is performed by the allez package (insert cita
 
 ## Step 3: Phenotype Correlation
 This step is not yet fully functional. 
+
+# For further reading
+
+# Citations
