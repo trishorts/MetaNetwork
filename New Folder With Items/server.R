@@ -132,6 +132,7 @@ enrichAllez <- function(GeneSymbols, GeneUniverse, SpeciesLibrary = "org.Hs.eg",
 }
 
 addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize = 500, side = "T"){
+  outputAllez <- data.frame(outputAllez)
   if(side=="F")outputAllez$p.value <- pnorm(-abs(outputAllez$z.score))# two tailed
   if(side=="T"){
     prb <- pnorm(outputAllez$z.score)# one tailed
@@ -157,6 +158,16 @@ createAllezEnrichmentXLSX <- function(geneUniverse, AllezPvalues){
     writeData(wb, names(AllezPvalues)[ii], AllezPvalues[[ii]])
   }
   saveWorkbook(wb, file = "Results/AllezEnrichment.xlsx", overwrite=TRUE)
+}
+
+plotModuleEigenproteinsBySample <- function(MEPs, module, filename){
+  selectedEigenproteinModule <- MEPs%>%
+    filter(`Module` == module)
+  ggplot(data = selectedEigenproteinModule, mapping = aes(x = `ModuleEigenprotein`, y = `Experiment`))+
+    geom_col()+
+    ggtitle(paste(module))+
+    theme_bw(base_family = "Arial")
+  ggsave(filename = filename, plot = last_plot())
 }
 
 server <- shinyServer(function(input, output) {
@@ -352,7 +363,7 @@ server <- shinyServer(function(input, output) {
     #Eigenproteins
     write_csv(EigenProteinsFin, path = "Results/Eigenproteins_by_sample.csv")
     
-    #Create the .pdfs
+    #Create the .pngs
     #Sample clustering quality control plot
     png(filename = "Results/Sample clustering to detect outliers.png")
     par(cex = 0.6)
@@ -451,18 +462,18 @@ server <- shinyServer(function(input, output) {
     req(input$WGCNAResults)
     
     ## Load the WGCNA Results File
-    wgcnaResults <- read_excel_allsheets(input$WGCNAResults$datapath)
-    sheetNumber <- length(wgcnaResults)
+    WGCNAResults <- read_excel_allsheets(input$WGCNAResults$datapath)
+    sheetNumber <- length(WGCNAResults)
     ## Load biomaRt (update this to make it faster -AVC 08/04/20)
     BiocManager::install("biomaRt", update = FALSE)
     library(biomaRt)
     ## Get the correct database
     if(input$organismID == "Human"){
-      fetchMart("Human")
+      mart <- fetchMart("Human")
       BiocManager::install('org.Hs.eg.db')
       library(org.Hs.eg.db)
     } else if(input$organismID == "Mouse"){
-      fetchMart("Mouse")
+      mart <- fetchMart("Mouse")
       BiocManager::install('org.Mm.eg.db')
       library(org.Mm.eg.db)
     }
@@ -490,24 +501,23 @@ server <- shinyServer(function(input, output) {
     names(ConvertedGeneSymbolsWithoutUniverse) <- ModuleNames[2:length(ConvertedGeneSymbols)]
     
     AllezEnriched <- list()
-    #if(input$organismID == "Human"){
-    for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
-      AllezEnriched <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
-                                   GeneUniverse = geneUniverse)
+    if(input$organismID == "Human"){
+      for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
+        AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
+                                     GeneUniverse = geneUniverse)
+      }
+    } else if(input$organismID == "Mouse"){
+      for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
+        AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
+                                          GeneUniverse = geneUniverse, SpeciesLibrary = "org.Mm.eg")
+      }
     }
-    #} else if(input$organismID == "Mouse"){
-    for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
-      AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
-                                        GeneUniverse = geneUniverse, SpeciesLibrary = "org.Mm.eg")
-    }
-    #}
     
     AllezPvalues <- list()
     for(i in 1:length(AllezEnriched)){
       AllezPvalues[[i]] <- addPvaluesToAllezOutput(outputAllez = AllezEnriched[[i]][[1]])
     }
     names(AllezPvalues) <- ModuleNames2
-    
     
     ## Create the workbook with the Allez sheets 
     createAllezEnrichmentXLSX(geneUniverse, AllezPvalues)
