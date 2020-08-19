@@ -294,7 +294,7 @@ server <- shinyServer(function(input, output) {
     EigenproteinModuleMeans <- allDataFinal%>%
       group_by(SampleID, moduleColor)%>%
       summarize("Mean" = mean(Expression), "sd" = sd(Expression))
-    dir.create(file.path(path, "Test10"))
+
     #Create the TOM Plot
     #Create a new variable called TOMTransformationPower
     plotTOM <- dissTOM^7
@@ -317,15 +317,17 @@ server <- shinyServer(function(input, output) {
     names(list.cluster.dat) <- 	levels(as.factor(moduleColors))
     
     #Need to implement choices for uniprot database
-    userInputDatabase <- read_tsv(input$databaseFile$datapath)
-    userInputDatabaseSelectedColumns <- tibble(userInputDatabase$Entry, userInputDatabase$`Gene names`, userInputDatabase$`Protein names`)
-    colnames(userInputDatabaseSelectedColumns) <- c("accession", "gene name", "protein name")
- 
-    dat.resMerged <- left_join(tibble(dat.res), userInputDatabaseSelectedColumns, by = "accession")
-    list.cluster.datMerged <- list()
-    for(i in seq_along(list.cluster.dat)){
-      list.cluster.datMerged[[i]] <- left_join(list.cluster.dat[[i]], userInputDatabaseSelectedColumns, by = "accession")
-    }
+   # userInputDatabase <- read_tsv(input$databaseFile$datapath)
+    #userInputDatabaseSelectedColumns <- tibble(userInputDatabase$Entry, userInputDatabase$`Gene names`, userInputDatabase$`Protein names`)
+    #colnames(userInputDatabaseSelectedColumns) <- c("accession", "gene name", "protein name")
+# 
+ #   dat.resMerged <- left_join(tibble(dat.res), userInputDatabaseSelectedColumns, by = "accession")
+    dat.resMerged <- tibble(dat.res)
+    #  list.cluster.datMerged <- list()
+   # for(i in seq_along(list.cluster.dat)){
+    #  list.cluster.datMerged[[i]] <- left_join(list.cluster.dat[[i]], userInputDatabaseSelectedColumns, by = "accession")
+    #}
+    list.cluster.datMerged <- list.cluster.dat
     names(list.cluster.datMerged) <- names(list.cluster.dat)
     
     
@@ -354,15 +356,14 @@ server <- shinyServer(function(input, output) {
     
     #Create the .pdfs
     #Sample clustering quality control plot
-    png(filename = "Results/Sample clustering to detect outliers.png")
-    par(cex = 0.6)
-    par(mar = c(0,4,2,0))
-    plot(sampleTree, main = "Sample clustering to detect outliers",
-         sub = "", xlab = "", cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
-    dev.off()
+    ggdendrogram(sampleTree)+
+      ggtitle("Sample Clustering to Detect Outliers")+
+      xlab("Sample")+
+      ylab("Height")+
+      theme_bw(base_family = "Arial", base_size = 15)
     
     # Scale free topology plot ----
-    png("Results/ScaleFreeTopology.png")
+    pdf("Results/ScaleFreeTopology.pdf", width = 10)
     par(mfrow = c(1,2));
     cex1 = 0.9;
     # Scale-free topology fit index as a function of the soft-thresholding power
@@ -380,26 +381,26 @@ server <- shinyServer(function(input, output) {
          main = paste("Mean connectivity"))
     text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
     dev.off()
-    
+
     # Plot the pre-merge and the merged module eigenprotein clustering
-    png("Results/Module Eigenprotein PrePost MergeDendrogram.png")
+    pdf("Results/Module Eigenprotein PrePost MergeDendrogram.pdf", width = 10)
     par(mfrow = c(2,1))
     par(cex = 0.6)
     plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
     abline(h = MCutHeight, col = "red")
-    plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "", 
+    plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
          sub = "")
     dev.off()
-    
-    
+
+
     # Plot the dendrogram following cluster merging ----
-    png("Results/DendroColorMergedClust.png", 2000, 2000, res=300)
+    pdf("Results/DendroColorMergedClust.pdf")
     plotDendroAndColors(proTree, cbind(dynamicColors, mergedColors),
                         c("Dynamic Tree Cut", "Merged dynamic"),
                         dendroLabels = FALSE, hang = 0.03,
                         addGuide = TRUE, guideHang = 0.05)
     dev.off()
-    
+
     #Eigenprotein Violin Plots
     EigenProteinPlot <- ggplot(data = EigenproteinModuleMeans,
                                mapping = aes(x = SampleID, y = Mean))+
@@ -410,32 +411,33 @@ server <- shinyServer(function(input, output) {
       facet_wrap(~moduleColor)+
       theme_bw()+
       theme(axis.text.x = element_text(angle = 90))
-    ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.png", path = "Results")
-    
+    ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.pdf", path = "Results")
+
     #Eigeneproteins dendrogram
-    png("Results/Dendrogram_eigenproteins.png", 2000,2000, res = 300)
+    pdf("Results/Dendrogram_eigenproteins.pdf", width = 10)
     plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
                           plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
     dev.off()
-    
+
     #Heatmap of the Module Eigenproteins
-    png(filename = "Results/Module Eigenproteins.png", width = 2000)
+    pdf(file = "Results/Module Eigenproteins.pdf", width = 10)
     heatmap3(MEs, distfun = function(x) dist(x, method="euclidean"),
              main = "Module Eigenproteins",
              cexRow = 0.6, cexCol = 0.6)
     dev.off()
-    
-    png("Results/Network_heatmap.png", 2000, 2000)
-    TOMplot(plotTOM, proTree, moduleColors, main = "Network heatmap plot, all proteins")
-    dev.off()
-    
+
+    #pdf("Results/Network_heatmap.pdf", width = 10)
+    TOMplot <- TOMplot(plotTOM, proTree, moduleColors, main = "Network heatmap plot, all proteins")
+    #as.pdf(TOMplot)
+    #dev.off()
+
     #need to add the adjacency heatmap
     MET <- orderMEs(MEs = MEs)
-    png(filename = "Results/Eigenprotein_adjacency heatmap.png", res = 300)
+    pdf(file = "Results/Eigenprotein_adjacency heatmap.pdf", width = 10)
     par(cex = 1.0)
     plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
                           marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
-    
+
     plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
                           marDendro = c(3,4,2,2), xLabelsAngle = 90)
     dev.off()
@@ -458,24 +460,24 @@ server <- shinyServer(function(input, output) {
     library(biomaRt)
     ## Get the correct database
     if(input$organismID == "Human"){
-      fetchMart("Human")
+      mart <- fetchMart("Human")
       BiocManager::install('org.Hs.eg.db')
       library(org.Hs.eg.db)
     } else if(input$organismID == "Mouse"){
-      fetchMart("Mouse")
+      mart <- fetchMart("Mouse")
       BiocManager::install('org.Mm.eg.db')
       library(org.Mm.eg.db)
     }
     
     ## The next three things will probably end up as a single function
     ## Convert the Uniprot Acessions to Gene Symbols for each sample 
-    sheetNumber <- length(WGCNAResults)
+    sheetNumber <- length(wgcnaResults)
     UniprotAcessions <- list()
     for(i in seq_len(sheetNumber)){
-      UniprotAcessions[[i]] <- WGCNAResults[[i]][,1]
+      UniprotAcessions[[i]] <- wgcnaResults[[i]][,1]
     }
-    ModuleNames <- names(WGCNAResults)
-    ModuleNames2 <- names(WGCNAResults)[2:length(WGCNAResults)]
+    ModuleNames <- names(wgcnaResults)
+    ModuleNames2 <- names(wgcnaResults)[2:length(wgcnaResults)]
     names(UniprotAcessions) <- ModuleNames
     
     ConvertedGeneSymbols <- list()
@@ -492,7 +494,7 @@ server <- shinyServer(function(input, output) {
     AllezEnriched <- list()
     #if(input$organismID == "Human"){
     for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
-      AllezEnriched <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
+      AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
                                    GeneUniverse = geneUniverse)
     }
     #} else if(input$organismID == "Mouse"){

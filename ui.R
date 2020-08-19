@@ -1,7 +1,6 @@
 # All the libraries that you will need ----
 library(heatmap3)
 library(WGCNA)
-library(tidyverse)
 library(shiny)
 library(readxl)
 library(openxlsx)
@@ -10,6 +9,8 @@ library(corrplot)
 library(RColorBrewer)
 library(BiocManager)
 library(allez)
+library(tidyverse)
+library(ggdendro)
 
 # Options for this shiny session ----
 options(shiny.maxRequestSize = 30*1024^2) # increases the upload size allowed to 30 mb.
