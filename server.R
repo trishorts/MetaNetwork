@@ -125,7 +125,7 @@ enrichAllez <- function(GeneSymbols, GeneUniverse, SpeciesLibrary = "org.Hs.eg",
                         alter = TRUE, Lowersetsize = 5, Uppsersetsize = 500, outprefix, ...){  
   Scores <- rep(0, length(GeneUniverse))
   names(Scores) <- as.vector(GeneUniverse)
-  Scores[intersect(names(Scores), GeneSymbols)] <- 1
+  Scores[base::intersect(names(Scores), GeneSymbols)] <- 1
   allezOutput <- allez(scores = Scores, 
                        lib = SpeciesLibrary, 
                        idtype = "SYMBOL", library.loc = GeneSymbols)
@@ -462,11 +462,13 @@ server <- shinyServer(function(input, output) {
     if(input$organismID == "Human"){
       mart <- fetchMart("Human")
       BiocManager::install('org.Hs.eg.db')
+      speciesLibrary <- 'org.Hs.eg'
       library(org.Hs.eg.db)
     } else if(input$organismID == "Mouse"){
       mart <- fetchMart("Mouse")
       BiocManager::install('org.Mm.eg.db')
       library(org.Mm.eg.db)
+      speciesLibrary <- 'org.Mm.eg'
     }
     
     ## The next three things will probably end up as a single function
@@ -492,17 +494,13 @@ server <- shinyServer(function(input, output) {
     names(ConvertedGeneSymbolsWithoutUniverse) <- ModuleNames[2:length(ConvertedGeneSymbols)]
     
     AllezEnriched <- list()
-    #if(input$organismID == "Human"){
     for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
       AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
-                                   GeneUniverse = geneUniverse)
+                                   GeneUniverse = geneUniverse, 
+                                   SpeciesLibrary = speciesLibrary) #species library 
+      # is defined in the control flow in lines 462-473
     }
-    #} else if(input$organismID == "Mouse"){
-    for(i in 1:length(ConvertedGeneSymbolsWithoutUniverse)){
-      AllezEnriched[[i]] <- enrichAllez(ConvertedGeneSymbolsWithoutUniverse[[i]], 
-                                        GeneUniverse = geneUniverse, SpeciesLibrary = "org.Mm.eg")
-    }
-    #}
+    
     
     AllezPvalues <- list()
     for(i in 1:length(AllezEnriched)){
