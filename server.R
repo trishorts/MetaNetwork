@@ -234,10 +234,6 @@ server <- shinyServer(function(input, output) {
                                  minClusterSize = minModuleSize)
     dynamicColors <- labels2colors(dynamicMods)
     # Merge clusters
-    ## The old way was that the modules were merged without first calculating the module eigenproteins, which I believe
-    ## was incorrect
-    # Old code remnant: mergedClust <- mergeCloseModules(allDataFile_t, dynamicColors, cutHeight = MCutHeight, verbose = 3)
-    # New code starts here: 
     # Calculate the module eigenproteins
     #The threshold for the merge. Default is 0.25, corresponding to a correlation of 0.75
     allDataModuleEigenProteins <- moduleEigengenes(expr = allDataFile_t, colors = dynamicColors)
@@ -354,93 +350,95 @@ server <- shinyServer(function(input, output) {
     #Eigenproteins
     write_csv(EigenProteinsFin, path = "Results/Eigenproteins_by_sample.csv")
     
-    #Create the .pdfs
-    #Sample clustering quality control plot
-    ggdendrogram(sampleTree)+
-      ggtitle("Sample Clustering to Detect Outliers")+
-      xlab("Sample")+
-      ylab("Height")+
-      theme_bw(base_family = "Arial", base_size = 15)
+    # #Create the .pdfs
+    # #Sample clustering quality control plot
+    # ggdendrogram(sampleTree)+
+    #   ggtitle("Sample Clustering to Detect Outliers")+
+    #   xlab("Sample")+
+    #   ylab("Height")+
+    #   theme_bw(base_family = "Arial", base_size = 15)
+    # 
+    # # Scale free topology plot ----
+    # pdf("Results/ScaleFreeTopology.pdf", width = 10)
+    # par(mfrow = c(1,2));
+    # cex1 = 0.9;
+    # # Scale-free topology fit index as a function of the soft-thresholding power
+    # plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+    #      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+    #      main = paste("Scale independence"));
+    # text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+    #      labels=powers,cex=cex1,col="red");
+    # # this line corresponds to using an R^2 cut-off of h
+    # h = RCutoff
+    # abline(h=RCutoff,col="red")
+    # # Mean connectivity as a function of the soft-thresholding power
+    # plot(sft$fitIndices[,1], sft$fitIndices[,5],
+    #      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+    #      main = paste("Mean connectivity"))
+    # text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+    # dev.off()
+    # 
+    # # Plot the pre-merge and the merged module eigenprotein clustering
+    # pdf("Results/Module Eigenprotein PrePost MergeDendrogram.pdf", width = 10)
+    # par(mfrow = c(2,1))
+    # par(cex = 0.6)
+    # plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
+    # abline(h = MCutHeight, col = "red")
+    # plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
+    #      sub = "")
+    # dev.off()
+    # 
+    # 
+    # # Plot the dendrogram following cluster merging ----
+    # pdf("Results/DendroColorMergedClust.pdf")
+    # plotDendroAndColors(proTree, cbind(dynamicColors, mergedColors),
+    #                     c("Dynamic Tree Cut", "Merged dynamic"),
+    #                     dendroLabels = FALSE, hang = 0.03,
+    #                     addGuide = TRUE, guideHang = 0.05)
+    # dev.off()
+    # 
+    # #Eigenprotein Violin Plots
+    # EigenProteinPlot <- ggplot(data = EigenproteinModuleMeans,
+    #                            mapping = aes(x = SampleID, y = Mean))+
+    #   geom_violin(data = allDataFinal, mapping = aes(x = SampleID, y = Expression))+
+    #   geom_point()+
+    #   geom_line(data = EigenproteinModuleMeans, mapping = aes(x = SampleID, y = Mean, group = 1))+
+    #   ylab("Protein Expression")+
+    #   facet_wrap(~moduleColor)+
+    #   theme_bw()+
+    #   theme(axis.text.x = element_text(angle = 90))
+    # ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.pdf", path = "Results")
+    # 
+    # #Eigeneproteins dendrogram
+    # pdf("Results/Dendrogram_eigenproteins.pdf", width = 10)
+    # plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
+    #                       plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
+    # dev.off()
+    # 
+    # #Heatmap of the Module Eigenproteins
+    # pdf(file = "Results/Module Eigenproteins.pdf", width = 10)
+    # heatmap3(MEs, distfun = function(x) dist(x, method="euclidean"),
+    #          main = "Module Eigenproteins",
+    #          cexRow = 0.6, cexCol = 0.6)
+    # dev.off()
+
+	dev.new()
+	png("Network heatmap.pdf")
+    	TOMplot(plotTOM, proTree, moduleColors, 
+	main = "Network heatmap plot, all proteins", col = rev(heat.colors(999)))
+    	dev.off()
     
-    # Scale free topology plot ----
-    pdf("Results/ScaleFreeTopology.pdf", width = 10)
-    par(mfrow = c(1,2));
-    cex1 = 0.9;
-    # Scale-free topology fit index as a function of the soft-thresholding power
-    plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-         xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
-         main = paste("Scale independence"));
-    text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-         labels=powers,cex=cex1,col="red");
-    # this line corresponds to using an R^2 cut-off of h
-    h = RCutoff
-    abline(h=RCutoff,col="red")
-    # Mean connectivity as a function of the soft-thresholding power
-    plot(sft$fitIndices[,1], sft$fitIndices[,5],
-         xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
-         main = paste("Mean connectivity"))
-    text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-    dev.off()
 
-    # Plot the pre-merge and the merged module eigenprotein clustering
-    pdf("Results/Module Eigenprotein PrePost MergeDendrogram.pdf", width = 10)
-    par(mfrow = c(2,1))
-    par(cex = 0.6)
-    plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
-    abline(h = MCutHeight, col = "red")
-    plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
-         sub = "")
-    dev.off()
-
-
-    # Plot the dendrogram following cluster merging ----
-    pdf("Results/DendroColorMergedClust.pdf")
-    plotDendroAndColors(proTree, cbind(dynamicColors, mergedColors),
-                        c("Dynamic Tree Cut", "Merged dynamic"),
-                        dendroLabels = FALSE, hang = 0.03,
-                        addGuide = TRUE, guideHang = 0.05)
-    dev.off()
-
-    #Eigenprotein Violin Plots
-    EigenProteinPlot <- ggplot(data = EigenproteinModuleMeans,
-                               mapping = aes(x = SampleID, y = Mean))+
-      geom_violin(data = allDataFinal, mapping = aes(x = SampleID, y = Expression))+
-      geom_point()+
-      geom_line(data = EigenproteinModuleMeans, mapping = aes(x = SampleID, y = Mean, group = 1))+
-      ylab("Protein Expression")+
-      facet_wrap(~moduleColor)+
-      theme_bw()+
-      theme(axis.text.x = element_text(angle = 90))
-    ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.pdf", path = "Results")
-
-    #Eigeneproteins dendrogram
-    pdf("Results/Dendrogram_eigenproteins.pdf", width = 10)
-    plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
-                          plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
-    dev.off()
-
-    #Heatmap of the Module Eigenproteins
-    pdf(file = "Results/Module Eigenproteins.pdf", width = 10)
-    heatmap3(MEs, distfun = function(x) dist(x, method="euclidean"),
-             main = "Module Eigenproteins",
-             cexRow = 0.6, cexCol = 0.6)
-    dev.off()
-
-    #pdf("Results/Network_heatmap.pdf", width = 10)
-    TOMplot <- TOMplot(plotTOM, proTree, moduleColors, main = "Network heatmap plot, all proteins")
-    #as.pdf(TOMplot)
-    #dev.off()
-
-    #need to add the adjacency heatmap
-    MET <- orderMEs(MEs = MEs)
-    pdf(file = "Results/Eigenprotein_adjacency heatmap.pdf", width = 10)
-    par(cex = 1.0)
-    plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
-                          marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
-
-    plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
-                          marDendro = c(3,4,2,2), xLabelsAngle = 90)
-    dev.off()
+    # #need to add the adjacency heatmap
+    # MET <- orderMEs(MEs = MEs)
+    # pdf(file = "Results/Eigenprotein_adjacency heatmap.pdf", width = 10)
+    # par(cex = 1.0)
+    # plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
+    #                       marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
+    # 
+    # plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
+    #                       marDendro = c(3,4,2,2), xLabelsAngle = 90)
+    # dev.off()
     
     #Output code
     output$workflowOutput <- renderText({
