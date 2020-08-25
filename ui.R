@@ -12,6 +12,7 @@ library(allez)
 library(tidyverse)
 library(ggdendro)
 
+
 # Options for this shiny session ----
 options(shiny.maxRequestSize = 30*1024^2) # increases the upload size allowed to 30 mb.
 
@@ -45,25 +46,30 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                   # Main panel ----
                                   mainPanel(
                                     tableOutput("preview"),
-                                    textOutput("workflowOutput")) 
+                                    # Add the following four things: 
+                                    # TOMPlot
+                                    plotOutput(output$TOMPLOT),
+                                    # Eigenproteins Heatmap
+                                    plotOutput(output$EPHEATMAP),
+                                    # Sample clustering 
+                                    plotOutput(output$SAMPLESCLUST),
+                                    # Protein dendrogram
+                                    plotOutput(output$PROTEINDENDRO),
+                                    textOutput("workflowOutput")
+                                  ) 
                                   
                          ),
                          tabPanel("Step 2: GO Enrichment Analysis",
                                   sidebarPanel(
-                                    fileInput(inputId = "WGCNAResults", label = "Import WGCNA results worksheet"),
+                                    fileInput(inputId = "WGCNAResults", label = "Import WGCNA results worksheet", ),
                                     selectInput(inputId = "organismID", label = "Select organism", choices = c("Human", "Mouse"), 
                                                 selected = "Human"),
                                     br(), 
                                     actionButton(inputId = "action2", label = "Submit Job")
                                   ), 
-                                  mainPanel()), 
-                         tabPanel("Step3: Phenotype Correlation",
-                                  sidebarPanel(
-                                    fileInput(inputId = "phenotypeData", label = "Upload phenotype data"), 
-                                    fileInput(inputId = "eigenproteinsBySample", label = "Upload Eigenproteins_by_sample.csv"),
-                                    checkboxInput(inputId = "needsNormalized", label = "Check the box if data is already normalized")
-                                  ), 
-                                  mainPanel())
+                                  mainPanel()
+                          )
+                                  
 )
 )
 

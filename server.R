@@ -1,73 +1,6 @@
 # Server logic ----
 # Helper functions required to make this work ----
 # GetGOterms
-getGOterms <- function(df, GOTerms, plot = TRUE, file.name){
-  ##get the module color:
-  mod.color <- df$moduleColors[1]
-  ## Get the number of unique proteins
-  protein.count <- length(unique(df$accession))
-  #get the GO terms from GOTerms, using the df.
-  cluster.uniprot <- df$accession
-  index <- which(GOTerms$`Input Accession` %in% cluster.uniprot, useNames = TRUE, arr.ind = TRUE)
-  
-  GO.listModule <- GOTerms$`Input Accession`[index]
-  GO.listID <- GOTerms$`GO:ID`[index]
-  GO.listTerms <- GOTerms$`GO Term Name`[index]
-  GO.listAspect <- GOTerms$Aspect[index]
-  GO.df <- tibble(GO.listModule, GO.listID, GO.listTerms, GO.listAspect)
-  ##Filtering the GO terms for P-type GO terms only
-  GO.count <- GO.df%>%
-    group_by(`GO.listID`)%>%
-    filter(GO.listAspect == "F")%>% ## for both process and function: GO.listAspect == "F"|GO.listAspect == "P
-    count(`GO.listTerms`)%>%
-    arrange(-n)
-  ##Plotting function
-  if(plot == TRUE){
-    p <- ggplot(data = GO.count[1:20,], mapping = aes(x = n, y = reorder(GO.listTerms, -n)))+
-      geom_col()+
-      ggtitle(paste("GO Terms for", mod.color, "module. ", protein.count, "proteins", sep = " "))+
-      theme_classic()
-    ggsave(filename = file.name, last_plot())
-  }else{return(GO.count)}
-}
-
-# GetGOEnrichment
-getGOEnrichment <- function(df, fullGOTermsList, plot = TRUE, file.name){
-  
-  #get the module color for plotting
-  modcolor <- names(df)
-  #
-  fisher.vec <- vector()
-  for(i in seq_along(df$`GO:ID`)){
-    C_a <- df$`GO:ID`[[i]]
-    index.val <- which(fullGOTermsList$`GO:ID` %in% C_a)
-    A <- df$n[i]
-    B <- sum(df$n)
-    C <- fullGOTermsList$n[index.val] - A
-    D <- sum(fullGOTermsList$n) - B
-    fisher.tib <- tibble(rbind(A,C), rbind(B,D))
-    inter1 <- fisher.test(fisher.tib)
-    fisher.vec[i] <- inter1$p.value
-  }
-  
-  
-  GOterms.pvalue <- df %>%
-    add_column(fisher.vec)%>%
-    arrange(fisher.vec)
-  top.20.pvalues <- GOterms.pvalue[1:20,]
-  
-  if(plot == TRUE){
-    p <- ggplot(data = top.20.pvalues, mapping = aes(x = -log10(fisher.vec), y = reorder(GOTermName, -fisher.vec)))+
-      geom_col()+
-      geom_vline(xintercept = -log10(0.05/length(df$`GO:ID`)), col = "red")+
-      scale_y_discrete()+
-      ggtitle(file.name)+
-      ylab("Top 20 GO Terms")+
-      xlab("-log10(p-value)")+
-      theme_bw()
-    ggsave(file.name, plot = last_plot())
-  }
-}
 
 getTop10HubProteins <- function(df, file.name){
   ##get the module color:
@@ -187,16 +120,9 @@ server <- shinyServer(function(input, output) {
     
     # Load the data files ----
     # Read the files in with read.csv, not read_csv
-    if(input$ttestbool == TRUE){
-      pre.allDataFile <- read.csv(input$dataFile$datapath)
-      groupsFile <- read.csv(file = input$groupsFile$datapath)
-      ttest_scores <- tibble(pre.allDataFile$accession, pre.allDataFile$TTEST)
-      index_ttest <- which(colnames(pre.allDataFile) == "TTEST")
-      allDataFile <- pre.allDataFile[-15]
-    }else{
-      allDataFile <- read.csv(file = input$dataFile$datapath)
-      groupsFile <- read.csv(file = input$groupsFile$datapath)
-    }
+    allDataFile <- read.csv(file = input$dataFile$datapath)
+    groupsFile <- read.csv(file = input$groupsFile$datapath)
+
     # Transpose data so that genes are columns and samples are rows ----
     allDataFile_t <- as.data.frame(t(allDataFile[,-c(1:IgnoreCols)]) )
     # column names and row names are now switched.
@@ -207,14 +133,16 @@ server <- shinyServer(function(input, output) {
     allowWGCNAThreads()
     # Choose a set of soft-thresholding powers
     powers <- c(c(1:10), seq(from = 12, to=PowerUpper, by=2))
-    
+        
     # Call the network topology analysis function
+    # Add control flow for automatic versus fixed power transformations
     sft <- pickSoftThreshold(allDataFile_t, powerVector = powers, RsquaredCut = RCutoff, verbose = 5)
     # Output all files, so sft needs to output to the working directory. I will need to figure
     # out how to output all the files into a temporary directory with a bunch of subfolders
     #Dendrograms ----
     softPower <- 12
     # Build the adjacency table - use "signed" for proteomics data
+    # create control flow for signed versus unsigned data
     adjacency <- adjacency(allDataFile_t, power = softPower, type="signed")
     
     
@@ -260,8 +188,8 @@ server <- shinyServer(function(input, output) {
     WGCNAClusterID <- moduleColors
     
     ## aggregate groups
-    gp <- groupsFile
-    noClusters <- nlevels(as.factor(moduleColors))
+    #gp <- groupsFile
+    #noClusters <- nlevels(as.factor(moduleColors))
     
     ##tidy data format for ease of plotting
     
@@ -313,11 +241,10 @@ server <- shinyServer(function(input, output) {
     names(list.cluster.dat) <- 	levels(as.factor(moduleColors))
     
     #Need to implement choices for uniprot database
-   # userInputDatabase <- read_tsv(input$databaseFile$datapath)
+    #userInputDatabase <- read_tsv(input$databaseFile$datapath)
     #userInputDatabaseSelectedColumns <- tibble(userInputDatabase$Entry, userInputDatabase$`Gene names`, userInputDatabase$`Protein names`)
     #colnames(userInputDatabaseSelectedColumns) <- c("accession", "gene name", "protein name")
-# 
- #   dat.resMerged <- left_join(tibble(dat.res), userInputDatabaseSelectedColumns, by = "accession")
+    #dat.resMerged <- left_join(tibble(dat.res), userInputDatabaseSelectedColumns, by = "accession")
     dat.resMerged <- tibble(dat.res)
     #  list.cluster.datMerged <- list()
    # for(i in seq_along(list.cluster.dat)){
@@ -350,99 +277,115 @@ server <- shinyServer(function(input, output) {
     #Eigenproteins
     write_csv(EigenProteinsFin, path = "Results/Eigenproteins_by_sample.csv")
     
-    # #Create the .pdfs
-    # #Sample clustering quality control plot
-    # ggdendrogram(sampleTree)+
-    #   ggtitle("Sample Clustering to Detect Outliers")+
-    #   xlab("Sample")+
-    #   ylab("Height")+
-    #   theme_bw(base_family = "Arial", base_size = 15)
-    # 
-    # # Scale free topology plot ----
-    # pdf("Results/ScaleFreeTopology.pdf", width = 10)
-    # par(mfrow = c(1,2));
-    # cex1 = 0.9;
-    # # Scale-free topology fit index as a function of the soft-thresholding power
-    # plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-    #      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
-    #      main = paste("Scale independence"));
-    # text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-    #      labels=powers,cex=cex1,col="red");
-    # # this line corresponds to using an R^2 cut-off of h
-    # h = RCutoff
-    # abline(h=RCutoff,col="red")
-    # # Mean connectivity as a function of the soft-thresholding power
-    # plot(sft$fitIndices[,1], sft$fitIndices[,5],
-    #      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
-    #      main = paste("Mean connectivity"))
-    # text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-    # dev.off()
-    # 
-    # # Plot the pre-merge and the merged module eigenprotein clustering
-    # pdf("Results/Module Eigenprotein PrePost MergeDendrogram.pdf", width = 10)
-    # par(mfrow = c(2,1))
-    # par(cex = 0.6)
-    # plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
-    # abline(h = MCutHeight, col = "red")
-    # plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
-    #      sub = "")
-    # dev.off()
-    # 
-    # 
-    # # Plot the dendrogram following cluster merging ----
-    # pdf("Results/DendroColorMergedClust.pdf")
-    # plotDendroAndColors(proTree, cbind(dynamicColors, mergedColors),
-    #                     c("Dynamic Tree Cut", "Merged dynamic"),
-    #                     dendroLabels = FALSE, hang = 0.03,
-    #                     addGuide = TRUE, guideHang = 0.05)
-    # dev.off()
-    # 
-    # #Eigenprotein Violin Plots
-    # EigenProteinPlot <- ggplot(data = EigenproteinModuleMeans,
-    #                            mapping = aes(x = SampleID, y = Mean))+
-    #   geom_violin(data = allDataFinal, mapping = aes(x = SampleID, y = Expression))+
-    #   geom_point()+
-    #   geom_line(data = EigenproteinModuleMeans, mapping = aes(x = SampleID, y = Mean, group = 1))+
-    #   ylab("Protein Expression")+
-    #   facet_wrap(~moduleColor)+
-    #   theme_bw()+
-    #   theme(axis.text.x = element_text(angle = 90))
-    # ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.pdf", path = "Results")
-    # 
-    # #Eigeneproteins dendrogram
-    # pdf("Results/Dendrogram_eigenproteins.pdf", width = 10)
-    # plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
-    #                       plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
-    # dev.off()
-    # 
-    # #Heatmap of the Module Eigenproteins
-    # pdf(file = "Results/Module Eigenproteins.pdf", width = 10)
-    # heatmap3(MEs, distfun = function(x) dist(x, method="euclidean"),
-    #          main = "Module Eigenproteins",
-    #          cexRow = 0.6, cexCol = 0.6)
-    # dev.off()
-
-	dev.new()
-	png("Network heatmap.pdf")
-    	TOMplot(plotTOM, proTree, moduleColors, 
-	main = "Network heatmap plot, all proteins", col = rev(heat.colors(999)))
-    	dev.off()
+     #Create the .pdfs
+     #Sample clustering quality control plot
+    sampleClusteringQC  <- ggdendrogram(sampleTree)+
+       ggtitle("Sample Clustering to Detect Outliers")+
+       xlab("Sample")+
+       ylab("Height")+
+       theme_bw(base_family = "Arial", base_size = 15)
+    ggsave(filename = "SampleClustering.pdf", path = "Results", plot = last_plot())
     
+    
+     # Scale free topology plot ----
+     pdf("Results/ScaleFreeTopology.pdf", width = 10)
+     par(mfrow = c(1,2));
+     cex1 = 0.9;
+     # Scale-free topology fit index as a function of the soft-thresholding power
+     plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+          xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+          main = paste("Scale independence"));
+     text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+          labels=powers,cex=cex1,col="red");
+     # this line corresponds to using an R^2 cut-off of h
+     h = RCutoff
+     abline(h=RCutoff,col="red")
+     # Mean connectivity as a function of the soft-thresholding power
+     plot(sft$fitIndices[,1], sft$fitIndices[,5],
+          xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+          main = paste("Mean connectivity"))
+     text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+     dev.off()
+     
+     # Plot the pre-merge and the merged module eigenprotein clustering
+     premergeDendro <- plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
+     postmergeDendro <- plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
+          sub = "")
+     
+     pdf("Results/Module Eigenprotein PrePost MergeDendrogram.pdf", width = 10)
+     par(mfrow = c(2,1))
+     par(cex = 0.6)
+     premergeDendro
+     abline(h = MCutHeight, col = "red")
+     postmergeDendro
+     dev.off()
+     
+     
+     # Plot the dendrogram following cluster merging ----
+     DendroColorMergedClust <- plotDendroAndColors(proTree, cbind(dynamicColors, mergedColors),
+                         c("Dynamic Tree Cut", "Merged dynamic"),
+                         dendroLabels = FALSE, hang = 0.03,
+                         addGuide = TRUE, guideHang = 0.05)
+     pdf("Results/DendroColorMergedClust.pdf")
+     DendroColorMergedClust
+     dev.off()
+     
+     #Eigenprotein Violin Plots
+     EigenProteinPlot <- ggplot(data = EigenproteinModuleMeans,
+                                mapping = aes(x = SampleID, y = Mean))+
+       geom_violin(data = allDataFinal, mapping = aes(x = SampleID, y = Expression))+
+       geom_point()+
+       geom_line(data = EigenproteinModuleMeans, mapping = aes(x = SampleID, y = Mean, group = 1))+
+       ylab("Protein Expression")+
+       facet_wrap(~moduleColor)+
+       theme_bw()+
+       theme(axis.text.x = element_text(angle = 90))
+     ggsave(plot = EigenProteinPlot, filename = "eigenprotein_cluster_profiles.pdf", path = "Results")
+     
+     #Eigeneproteins dendrogram
+     pdf("Results/Dendrogram_eigenproteins.pdf", width = 10)
+     plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
+                           plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
+     dev.off()
+     
+     #Heatmap of the Module Eigenproteins
+       pdf(file = "Results/Module Eigenproteins.pdf", width = 10)
+       heatmap3(MEs, distfun = function(x) dist(x, method="euclidean"),
+                main = "Module Eigenproteins",
+                cexRow = 0.6, cexCol = 0.6)
+       dev.off()
+    
+      tomplotplot <- TOMplot(plotTOM, proTree, moduleColors, 
+             main = "Network heatmap plot, all proteins", col = rev(heat.colors(999)))
+    	
+      dev.new()
+    	png("Network heatmap.pdf")
+      tomplotplot
+      dev.off()
+      
 
-    # #need to add the adjacency heatmap
-    # MET <- orderMEs(MEs = MEs)
-    # pdf(file = "Results/Eigenprotein_adjacency heatmap.pdf", width = 10)
-    # par(cex = 1.0)
-    # plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
-    #                       marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
-    # 
-    # plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
-    #                       marDendro = c(3,4,2,2), xLabelsAngle = 90)
-    # dev.off()
+     #need to add the adjacency heatmap
+     MET <- orderMEs(MEs = MEs)
+     EigenNetworksDendro <- plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
+                           marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
+     
+     EigenNetworksHeatmap <- plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
+                           marDendro = c(3,4,2,2), xLabelsAngle = 90)
+     
+     pdf(file = "Results/Eigenprotein_adjacency heatmap.pdf", width = 10)
+     par(cex = 1.0)
+     EigenNetworksDendro
+     EigenNetworksHeatmap
+     dev.off()
     
     #Output code
     output$workflowOutput <- renderText({
       print("WGCNA workflow completed. Results exported to folder.")
+    #Grid arrange the plots in preparation for output
+    output$PLOTOUTPUT <-  renderPlot({
+      grid.arrange(tomplotplot, sampleClusteringQC, 
+      DendrogramEigenproteins, DendroColorMergedClust, ncol = 2)
+      })
     })
   }) # this one is the close of the observeEvent function that wraps the WGCNA analysis workflow
   
