@@ -1,4 +1,6 @@
 # All the libraries that you will need ----
+installAndLoadRequiredPackages()
+
 library(heatmap3)
 library(WGCNA)
 library(shiny)
@@ -7,7 +9,7 @@ library(openxlsx)
 library(qtl)
 library(corrplot)
 library(RColorBrewer)
-#library(BiocManager)
+library(BiocManager)
 library(allez)
 library(tidyverse)
 library(ggdendro)
