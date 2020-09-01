@@ -49,6 +49,7 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                   # Main panel ----
                                   mainPanel(
                                     ## Need to output the table again. It got accidentally deleted
+                                    textOutput(outputId = "workflowOutput")
                                   ) 
                                   
                          ),

@@ -156,7 +156,7 @@ server <- shinyServer(function(input, output) {
       plotSampleClusteringDendro(sampleTree)
     
       # Scale free topology plot ----
-      plotScaleFreeTopology(spowersOutput = sft, 
+      plotScaleFreeTopology(powersOutput = sft, 
                             powers = powers, 
                             scaleFreeThreshold = RCutoff)
      
