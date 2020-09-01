@@ -6,4 +6,5 @@ enrichAllez <- function(GeneSymbols, GeneUniverse, SpeciesLibrary = "org.Hs.eg",
   allezOutput <- allez(scores = Scores, 
                        lib = SpeciesLibrary, 
                        idtype = "SYMBOL", library.loc = GeneSymbols)
+  message("Allez enrichment successful")
 }

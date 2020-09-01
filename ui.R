@@ -1,18 +1,9 @@
 # All the libraries that you will need ----
+## Need to load all the R functions required to make this thing run
+source(file = "./R/installFunctions.R")
+installFunctions()
 installAndLoadRequiredPackages()
 
-library(heatmap3)
-library(WGCNA)
-library(shiny)
-library(readxl)
-library(openxlsx)
-library(qtl)
-library(corrplot)
-library(RColorBrewer)
-library(BiocManager)
-library(allez)
-library(tidyverse)
-library(ggdendro)
 
 
 # Options for this shiny session ----
@@ -31,13 +22,23 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                     fileInput(inputId = "groupsFile", label = "Groups (.csv file) See note for required formatting."), 
                                     fileInput(inputId = "databaseFile", label = "Enter Database File Downloaded from Uniprot"),
                                     # WGCNA Workflow parameters ----
-                                    textInput(inputId = "rcutoff" , label = "R Cutoff", value = 0.85), 
-                                    textInput(inputId = "mcutheight", label = "M Cut Height", value = 0.25), 
-                                    textInput(inputId = "powerupper", label = "Power Upper", value = 20), 
-                                    textInput(inputId = "minmodsize", label = "Min Module Size", value = 20), 
-                                    textInput(inputId = "ignorecols", label = "Enter how many columns to ignore", value = 2),
+                                    textInput(inputId = "rcutoff" , 
+                                              label = "R Cutoff", 
+                                              value = 0.85), 
+                                    textInput(inputId = "mcutheight", 
+                                              label = "M Cut Height", 
+                                              value = 0.25), 
+                                    textInput(inputId = "powerupper", 
+                                              label = "Power Upper", 
+                                              value = 20), 
+                                    textInput(inputId = "minmodsize", 
+                                              label = "Min Module Size", 
+                                              value = 20), 
+                                    textInput(inputId = "ignorecols", 
+                                              label = "Enter how many columns to ignore", 
+                                              value = 2),
                                     #textInput(inputId = "workbookname", label = "Enter custom name for the excel workbook output", value = ""), Maybe someday.
-                                    checkboxInput(inputId = "ttestbool", label = "Check if data includes column of TTEST values", value = FALSE),
+                                    #checkboxInput(inputId = "ttestbool", label = "Check if data includes column of TTEST values", value = FALSE),
                                     #checkboxInput(inputId = "exportvisAnt", label = "Check if you want to export to VisANT. Not functional yet.", value = FALSE),
                                     #textInput(inputId = "filerename", label = "Enter analysis name", value = ""),
                                     # line break (to make it look nicer) ----
@@ -47,17 +48,7 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                   ),
                                   # Main panel ----
                                   mainPanel(
-                                    tableOutput("preview"),
-                                    # Add the following four things: 
-                                    # TOMPlot
-                                    plotOutput(output$TOMPLOT),
-                                    # Eigenproteins Heatmap
-                                    plotOutput(output$EPHEATMAP),
-                                    # Sample clustering 
-                                    plotOutput(output$SAMPLESCLUST),
-                                    # Protein dendrogram
-                                    plotOutput(output$PROTEINDENDRO),
-                                    textOutput("workflowOutput")
+                                    ## Need to output the table again. It got accidentally deleted
                                   ) 
                                   
                          ),

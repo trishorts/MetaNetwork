@@ -7,4 +7,5 @@ fetchMart <- function(species){
     ensembl <- useDataset("mmusculus_gene_ensembl", mart = ensembl)
     mart <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
   }
+  message("Successfully retrieved database")
 }

@@ -7,5 +7,6 @@ writeVarianceExplained <- function(datExpr,
                    MEs, 
                    corFnc = "cor", 
                    corOptions = "use = 'p'")
-  write_csv(x = varianceExplained, path = "Results/varianceExplained.csv")
+  write.csv(x = varianceExplained, file = "Results/varianceExplained.csv")
+  message("Variance explained file successfully written")
 }

@@ -10,5 +10,6 @@ plotmoduleEigenproteinsHeatmap <- function(moduleEigenproteins,
            main = "Module Eigenproteins",
            cexRow = 0.6, cexCol = 0.6)
   dev.off()  
+  message("Heatmap of eigenproteins successfully created")
 }
 

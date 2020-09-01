@@ -1,5 +1,7 @@
-plotProteinDendrogram <- function(proteinDendrogram){
-  DendroColorMergedClust <- plotDendroAndColors(proTree, 
+plotProteinDendrogram <- function(proteinDendrogram,
+  dynamicColors,
+  mergedColors){
+  DendroColorMergedClust <- plotDendroAndColors(proteinDendrogram,
                                                 colors = cbind(dynamicColors, mergedColors),
                                                 groupLabels = c("Dynamic Tree Cut", "Merged dynamic"),
                                                 dendroLabels = FALSE, hang = 0.03,
@@ -7,4 +9,5 @@ plotProteinDendrogram <- function(proteinDendrogram){
   pdf("Results/DendroColorMergedClust.pdf")
   DendroColorMergedClust
   dev.off()
+  message("Protein dendrogram generated")
 }

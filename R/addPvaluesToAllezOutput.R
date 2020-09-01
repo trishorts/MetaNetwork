@@ -13,5 +13,6 @@ addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize 
   message("sets with size < ",Lowersetsize, " or > ", Uppersetsize, " are not considered" )
   LocalOut <- outputAl
   lezOut
+  message("Successfully added p-values to Allez Output")
   return(outputAllezOut)
 }

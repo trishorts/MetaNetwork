@@ -1,7 +1,3 @@
-## Need to load all the R functions required to make this thing run
-source(file = "./R/installFunctions.R")
-installFunctions()
-
 server <- shinyServer(function(input, output) {
   # Generate the file preview ----
   output$preview <- renderTable({
@@ -17,11 +13,10 @@ server <- shinyServer(function(input, output) {
   
   observeEvent(input$action, {
     # Action button for tab 1 ----
-    #require a file input in order to do the workflow. ----
+    # require a file input in order to do the workflow. ----
     req(input$dataFile)
     req(input$groupsFile)
     req(input$databaseFile)
-    # User input defined/default setting for the WGCNA workflow ----
     RCutoff <- as.numeric(input$rcutoff)
     MCutHeight <- as.numeric(input$mcutheight)
     PowerUpper <- as.numeric(input$powerupper)
@@ -30,8 +25,10 @@ server <- shinyServer(function(input, output) {
     
     # Load the data files ----
     # Read the files in with read.csv, not read_csv
-    allDataFile <- read.csv(file = input$dataFile$datapath)
-    groupsFile <- read.csv(file = input$groupsFile$datapath)
+    allDataFile <- read.csv(file = input$dataFile$datapath, 
+                            fileEncoding = "UTF-8-BOM")
+    groupsFile <- read.csv(file = input$groupsFile$datapath, 
+                           fileEncoding = "UTF-8-BOM")
 
     # Transpose data so that genes are columns and samples are rows ----
     allDataFile_t <- as.data.frame(t(allDataFile[,-c(1:IgnoreCols)]) )
@@ -53,14 +50,15 @@ server <- shinyServer(function(input, output) {
     adjacency <- adjacency(allDataFile_t, power = softPower, type="signed")
     TOM <- TOMsimilarity(adjacency)
     dissTOM <- 1-TOM
+    message("dissimilarity TOM matrix successfully created")
     # Clustering using TOM-based dissimilarity
     proTree <- hclust(as.dist(dissTOM), method = "average");
     
     path <- getwd()
+    message("Creating results folder")
     dir.create(file.path(path, "Results"))
     
-    
-    
+    message("Identifying modules")
     # Module identification using dynamic tree cut
     dynamicMods <- cutreeDynamic(dendro = proTree, distM = dissTOM,
                                  deepSplit = 2, pamRespectsDendro = FALSE,
@@ -69,12 +67,14 @@ server <- shinyServer(function(input, output) {
     # Merge clusters
     # Calculate the module eigenproteins
     #The threshold for the merge. Default is 0.25, corresponding to a correlation of 0.75
-     
+     message("Merging modules")
     mergedClust <- mergeModuleEigenproteins(allDataFile_t, moduleColors = dynamicColors, 
                              cutHeight = MCutHeight)
     mergedColors <- mergedClust$colors
     mergedMEs <- mergedClust$newMEs
     moduleColors <- mergedColors
+    METree <- mergedClust$METree
+    MEDiss <- mergedClust$MEDiss
     MEs <- mergedMEs
     rownames(MEs) <- rownames(allDataFile_t)
     
@@ -127,39 +127,48 @@ server <- shinyServer(function(input, output) {
       EigenProteinsFin <- left_join(EigenProteins_tidy, tibble(groupsFile), "Experiment")
     
       ## Output the files
+      message("Starting output to Results folder")
       path <- getwd()
       dir.create(file.path(path, "Results"))
       # Write the files
       # module memberships
       userInputDatabase <- read_tsv(input$databaseFile$datapath)
+      
       mergeAndWriteWGCNAWorkbook(selectedDatabase = userInputDatabase, 
                                  allData = dat.res, 
                                  dataList = list.cluster.dat)
-      
+      message("ResultsWGCNA.xlsx written...")
       #Eigenproteins
-      write_csv(EigenProteinsFin, path = "Results/Eigenproteins_by_sample.csv")
+      write.csv(EigenProteinsFin, file = "Results/Eigenproteins_by_sample.csv")
       EigenproteinsWide <- spread(data = EigenProteinsFin, 
                                   key = `Module`, 
                                   value = ModuleEigenprotein)
-      write_csv(EigenProteins, path = "Results/EigenproteinsWide.csv")
+      write.csv(EigenProteins, file = "Results/EigenproteinsWide.csv")
+      message("Eigenproteins written...")
       # Proportion of variance explained
       writeVarianceExplained(datExpr = allDataFile_t, 
                              colors = mergedColors, 
                              MEs = mergedMEs)
+      message("Variance explained written...")
     
      # Create the .pdfs
      # Sample clustering quality control plot
       plotSampleClusteringDendro(sampleTree)
     
       # Scale free topology plot ----
-      plotScaleFreeTopology(scaleFreeThreshold = Rcutoff)
+      plotScaleFreeTopology(spowersOutput = sft, 
+                            powers = powers, 
+                            scaleFreeThreshold = RCutoff)
      
       # Plot the pre-merge and the merged module eigenprotein clustering
       plotEigenproteinClusteringPostMerge(preMergeDendroData = METree, 
-                                        postMergeDendroData = mergedClust$dendro) 
+                                        postMergeDendroData = mergedClust$dendro, 
+                                        cutHeight = MCutHeight) 
     
       # Plot the dendrogram following cluster merging ----
-      plotProteinDendrogram(proTree)
+      plotProteinDendrogram(proTree, 
+                            dynamicColors = dynamicColors, 
+                            mergedColors = mergedColors)
      
       #Eigeneproteins dendrogram
       plotEigenproteinsNetwork(moduleEigenproteins = MEs)
@@ -178,10 +187,7 @@ server <- shinyServer(function(input, output) {
       output$workflowOutput <- renderText({
       print("WGCNA workflow completed. Results exported to folder.")
       #Grid arrange the plots in preparation for output
-      output$PLOTOUTPUT <-  renderPlot({
-      grid.arrange(tomplotplot, sampleClusteringQC, 
-      DendrogramEigenproteins, DendroColorMergedClust, ncol = 2)
-      })
+      
     })
   }) # this one is the close of the observeEvent function that wraps the WGCNA analysis workflow
   
@@ -248,6 +254,7 @@ server <- shinyServer(function(input, output) {
     
     ## Create the workbook with the Allez sheets 
     createAllezEnrichmentXLSX(geneUniverse, AllezPvalues)
+
     message("Allez Enrichment workflow completed")
   })
 }) #this one is the server's end

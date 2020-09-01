@@ -4,8 +4,8 @@ Rcutoff <- 20
 pdfFunctionTesting <- function(data, scaleFreeThreshold, fileName = "pdfPlot.pdf",...){
   graphics.off()
   pdf(file = fileName)
-    plot(data)
-    abline(h = scaleFreeThreshold, col="red")
+  plot(data)
+  abline(h = scaleFreeThreshold, col="red")
   dev.off()
 }
 pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)

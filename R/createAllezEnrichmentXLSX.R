@@ -10,4 +10,5 @@ createAllezEnrichmentXLSX <- function(geneUniverse, AllezPvalues){
     writeData(wb, names(AllezPvalues)[ii], AllezPvalues[[ii]])
   }
   saveWorkbook(wb, file = "Results/AllezEnrichment.xlsx", overwrite=TRUE)
+  message("Allez enrichment workbook saved successfully")
 }

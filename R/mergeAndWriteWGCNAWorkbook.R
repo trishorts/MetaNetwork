@@ -1,22 +1,29 @@
 mergeAndWriteWGCNAWorkbook <- function(selectedDatabase, 
                                      allData, 
                                      dataList){
-  userInputDatabaseSelectedColumns <- tibble(userInputDatabase$Entry, 
-                                             userInputDatabase$`Gene names`, 
-                                             userInputDatabase$`Protein names`)
-  colnames(userInputDatabaseSelectedColumns) <- c("accession", "gene name", "protein name")
-  dat.resMerged <- left_join(tibble(allData), 
+  allData <- as_tibble(allData)
+  dataList <- lapply(dataList, as_tibble)
+  message("Pulling gene symbols from Uniprot Database...")
+  userInputDatabaseSelectedColumns <- tibble(selectedDatabase$Entry, 
+                                             selectedDatabase$`Gene names`, 
+                                             selectedDatabase$`Protein names`)
+  colnames(userInputDatabaseSelectedColumns) <- c(names(allData)[1], 
+                                                  "gene name", 
+                                                  "protein name")
+  dat.resMerged <- left_join(allData, 
                              userInputDatabaseSelectedColumns, 
-                             by = "accession")
-  dat.resMerged <- tibble(allData)
+                             by = names(allData)[1])
+  message("Error does not occur in Line 16")
   list.cluster.datMerged <- list()
   for(i in seq_along(dataList)){
     list.cluster.datMerged[[i]] <- left_join(dataList[[i]], 
                                              userInputDatabaseSelectedColumns, 
-                                             by = "accession")
+                                             by = names(allData[1]))
   }
-  names(list.cluster.datMerged) <- names(list.cluster.dat)
+  message("Saving workbook...")
+  names(list.cluster.datMerged) <- names(dataList)
   createResultsWGCNAExcelWorkbook(dat.resMerged, list.cluster.datMerged)
+  message("WGCNA workbook saved")
 }
 
 

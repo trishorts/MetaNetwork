@@ -15,5 +15,6 @@ tidyModuleDataForOutput <- function(dataInput, moduleColors, groupsFile){
                                            replacement = ".")
   
   allDataFinal <- left_join(dataColTidy, groupsFile, "Experiment")
+  message("Module data is now tidy")
   return(allDataFinal)
 }

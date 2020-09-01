@@ -10,6 +10,6 @@ plotEigenproteinsNetwork <- function(moduleEigenproteins,
   pdf(file = fileName, width = widthInches)
   EigengeneNetworks
   dev.off()
-  
+  message("Eigenproteins dendrogram exported")
 }
 

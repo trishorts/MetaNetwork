@@ -6,4 +6,5 @@ sampleClusteringQC  <- ggdendrogram(dendro)+
   ylab("Height")+
   theme_bw(base_size = fontSize)
 ggsave(filename = fileName, path = "Results", plot = last_plot())
+message("Sample dendrogram created")
 }

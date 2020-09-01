@@ -13,5 +13,6 @@ plotAdjacencyHeatmap <- function(moduleEigenproteins,
   EigenNetworksDendro
   EigenNetworksHeatmap
   dev.off()
+  message("Adjacency heatmap created")
 }
 
