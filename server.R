@@ -17,6 +17,7 @@ server <- shinyServer(function(input, output) {
     req(input$dataFile)
     req(input$groupsFile)
     req(input$databaseFile)
+    
     RCutoff <- as.numeric(input$rcutoff)
     MCutHeight <- as.numeric(input$mcutheight)
     PowerUpper <- as.numeric(input$powerupper)
@@ -152,6 +153,10 @@ server <- shinyServer(function(input, output) {
       message("Variance explained written...")
     
      # Create the .pdfs
+      dir.create(file.path("Results", "EigenproteinsBySample"))
+      for(i in 1:length(unique(EigenProteinsFin[[]]))) ## Finish this
+      plotModuleEigenproteinsBySample(MEPs = EigenProteinsFin)
+      
      # Sample clustering quality control plot
       plotSampleClusteringDendro(sampleTree)
     

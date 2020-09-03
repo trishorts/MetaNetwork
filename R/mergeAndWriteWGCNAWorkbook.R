@@ -1,6 +1,6 @@
 mergeAndWriteWGCNAWorkbook <- function(selectedDatabase, 
                                      allData, 
-                                     dataList){
+                                     dataList, ...){
   allData <- as_tibble(allData)
   dataList <- lapply(dataList, as_tibble)
   message("Pulling gene symbols from Uniprot Database...")
@@ -22,7 +22,7 @@ mergeAndWriteWGCNAWorkbook <- function(selectedDatabase,
   }
   message("Saving workbook...")
   names(list.cluster.datMerged) <- names(dataList)
-  createResultsWGCNAExcelWorkbook(dat.resMerged, list.cluster.datMerged)
+  createResultsWGCNAExcelWorkbook(dat.resMerged, list.cluster.datMerged, ...)
   message("WGCNA workbook saved")
 }
 

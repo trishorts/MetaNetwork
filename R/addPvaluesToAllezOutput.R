@@ -10,9 +10,10 @@ addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize 
   outputAllezOut <- outputAllez[order(outputAllez$p.value),
                                 c("Term","p.value","p.adj","z.score",
                                   "set.size","set.mean","set.sd")]
+  ## need to add the GO term [ ] 
+  ## need to add the gene in each GO term [ ] 
   message("sets with size < ",Lowersetsize, " or > ", Uppersetsize, " are not considered" )
-  LocalOut <- outputAl
-  lezOut
+  
   message("Successfully added p-values to Allez Output")
   return(outputAllezOut)
 }

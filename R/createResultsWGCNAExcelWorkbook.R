@@ -1,4 +1,6 @@
-createResultsWGCNAExcelWorkbook <- function(fullDataSet, modulesList){
+createResultsWGCNAExcelWorkbook <- function(fullDataSet, modulesList, 
+                                            filePath = "Results/ResultsWGCNA.xlsx",
+                                            ...){
   wb = createWorkbook()
   
   addWorksheet(wb, paste("WGCNA_workbook"))
@@ -10,5 +12,5 @@ createResultsWGCNAExcelWorkbook <- function(fullDataSet, modulesList){
     writeData(wb, names(modulesList)[ii], modulesList[[ii]])
   }
   
-  saveWorkbook(wb, file = paste("Results/", "ResultsWGCNA", ".xlsx", sep = ""), overwrite=TRUE)
+  saveWorkbook(wb, file = filePath, overwrite=TRUE)
 }

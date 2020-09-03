@@ -9,7 +9,7 @@ plotTOM <- function(TOMData,
   png(filename = fileName)
   TOMplot(TOMData, proteinDendro, moduleColors,
     main = "Network heatmap plot, all proteins",
-    col = rev(heat.colors(999))
+    col = rev(heat.colors(999)))
   dev.off()
   message("TOM plot successfully generated")
 }
