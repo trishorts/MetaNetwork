@@ -1,0 +1,245 @@
+---
+title: "workflow"
+author: "Ruiheng Wu"
+date: "2020/8/26"
+output: html_document
+
+1. ui panel setup
+```{r}
+#packages needed
+library(heatmap3)
+library(WGCNA)
+library(shiny)
+library(readxl)
+library(openxlsx)
+library(qtl)
+library(corrplot)
+library(RColorBrewer)
+library(BiocManager)
+library(allez)
+library(tidyverse)
+library(ggdendro)
+
+ui <- shinyUI(navbarPage("WGCNA and GO analysis",
+#Page for step 1 WGCNA analysis
+tabPanel("Step 1: WGCNA Analysis", 
+#Side bar controls for step 1    
+ sidebarPanel(
+# File input parameters 
+fileInput(inputId = "dataFile", label = "Data (.csv file) See note for required formatting."), 
+fileInput(inputId = "groupsFile", label = "Groups (.csv file) See note for required formatting."), 
+fileInput(inputId = "databaseFile", label = "Enter Database File Downloaded from Uniprot"),
+# WGCNA Workflow parameters 
+textInput(inputId = "rcutoff" , label = "R Cutoff", value = 0.85), 
+textInput(inputId = "mcutheight", label = "M Cut Height", value = 0.25), 
+textInput(inputId = "powerupper", label = "Power Upper", value = 20), 
+textInput(inputId = "minmodsize", label = "Min Module Size", value = 20), 
+textInput(inputId = "ignorecols", label = "Enter how many columns to ignore", value = 2),
+checkboxInput(inputId = "ttestbool", label = "Check if data includes column of TTEST values", value = FALSE),
+#line break
+br(), 
+# Submit WGCNA Job tab
+actionButton(inputId = "action", label = "Submit Job")),
+# Main panel ----
+mainPanel(
+tableOutput("preview"),
+textOutput("workflowOutput")) 
+ ),
+#Page for step 2 Go enrichment analysis
+tabPanel("Step 2: GO Enrichment Analysis",
+#Side bar controls for step 2
+sidebarPanel(
+#file input parameters
+fileInput(inputId = "WGCNAResults", label = "Import WGCNA results worksheet", ),
+selectInput(inputId = "organismID", label = "Select organism", choices = c("Human", "Mouse"), 
+selected = "Human"),
+br(), 
+# Submit Go enrichment Job tab
+actionButton(inputId = "action2", label = "Submit Job")
+), 
+mainPanel()
+)))
+```
+
+2.server
+
+2.1 the part that I do not really know
+
+```{r}
+getTop10HubProteins <- function(df, file.name){
+  ##get the module color:
+  mod.color <- df$moduleColors[1]
+  ## Get the number of unique proteins
+  protein.count <- length(unique(df$accession))
+  #get the column with the
+  #get the GO terms from GOTerms, using the df.
+  top10df <- df[1:10,]
+  ggplot(data = top10df, mapping = aes_string(x = colnames(top10df)[1], y = colnames(top10df)[ncol(top10df)] ))+
+    geom_col()+
+    ggtitle(paste("Top KMEs for", mod.color, "module. ", sep = " "))+
+    theme_classic()
+  ggsave(filename = file.name, last_plot())
+}
+
+createResultsWGCNAExcelWorkbook <- function(fullDataSet, modulesList){
+  wb = createWorkbook()
+  
+  addWorksheet(wb, paste("WGCNA_workbook"))
+  writeData(wb, sheet = 1, fullDataSet)
+  
+  # write modules only tabs
+  for(ii in 1:length(modulesList)) {
+    addWorksheet(wb, names(modulesList)[ii])
+    writeData(wb, names(modulesList)[ii], modulesList[[ii]])
+  }
+  
+  saveWorkbook(wb, file = paste("Results/", "ResultsWGCNA", ".xlsx", sep = ""), overwrite=TRUE)
+}
+
+fetchMart <- function(species){
+  ensembl <- useMart("ensembl")
+  if(species == "Human"){
+  ensembl <- useDataset("hsapiens_gene_ensembl", mart = ensembl)
+  mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+  } else if(species == "Mouse"){
+    ensembl <- useDataset("mmusculus_gene_ensembl", mart = ensembl)
+    mart <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+  }
+}
+
+read_excel_allsheets <- function(filename, tibble = FALSE) {
+  # I prefer straight data.frames
+  # but if you like tidyverse tibbles (the default with read_excel)
+  # then just pass tibble = TRUE
+  sheets <- readxl::excel_sheets(filename)
+  x <- lapply(sheets, function(X) readxl::read_excel(filename, sheet = X))
+  if(!tibble) x <- lapply(x, as.data.frame)
+  names(x) <- sheets
+  x
+}
+
+enrichAllez <- function(GeneSymbols, GeneUniverse, SpeciesLibrary = "org.Hs.eg", idtype = "SYMBOL", 
+                        alter = TRUE, Lowersetsize = 5, Uppsersetsize = 500, outprefix, ...){  
+  Scores <- rep(0, length(GeneUniverse))
+  names(Scores) <- as.vector(GeneUniverse)
+  Scores[base::intersect(names(Scores), GeneSymbols)] <- 1
+  allezOutput <- allez(scores = Scores, 
+                       lib = SpeciesLibrary, 
+                       idtype = "SYMBOL", library.loc = GeneSymbols)
+}
+
+addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize = 500, side = "T"){
+  if(side=="F")outputAllez$p.value <- pnorm(-abs(outputAllez$z.score))# two tailed
+  if(side=="T"){
+    prb <- pnorm(outputAllez$z.score)# one tailed
+    outputAllez$p.value <- ifelse(1-prb>prb, prb, 1-prb)*2
+  }
+  outputAllez$p.adj <- p.adjust(outputAllez$p.value, method="BH")
+  outputAllez <- outputAllez[which(outputAllez$set.size>Lowersetsize),]
+  outputAllez <- outputAllez[which(outputAllez$set.size<Uppersetsize),]
+  outputAllezOut <- outputAllez[order(outputAllez$p.value),c("Term","p.value","p.adj","z.score","set.size","set.mean","set.sd")]
+  message("sets with size < ",Lowersetsize, " or > ", Uppersetsize, " are not considered" )
+  return(outputAllezOut)
+}
+
+createAllezEnrichmentXLSX <- function(geneUniverse, AllezPvalues){
+  wb = createWorkbook()
+  
+  addWorksheet(wb, paste("GeneUniverse"))
+  writeData(wb, sheet = 1, geneUniverse)
+  
+  # write modules only tabs
+  for(ii in 1:length(AllezPvalues)) {
+    addWorksheet(wb, names(AllezPvalues)[ii])
+    writeData(wb, names(AllezPvalues)[ii], AllezPvalues[[ii]])
+  }
+  saveWorkbook(wb, file = "Results/AllezEnrichment.xlsx", overwrite=TRUE)
+}
+
+```
+
+2.2 File preview logic 
+```{r}
+server <- shinyServer(function(input, output) {
+  output$preview <- renderTable({
+    req(input$dataFile)
+    req(input$groupsFile)
+    req(input$dataFile)
+    
+    datafile.tibb <- read.csv(input$dataFile$datapath)
+    groups.tibb <- read.csv(input$groupsFile$datapath)
+    head(datafile.tibb)
+  })})
+```
+2.3 activation of WGCNA workflow
+```{r}
+observeEvent(input$action, {})
+```
+2.4 require a file input in order to do the workflow.
+```{r}
+server <- shinyServer(function(input, output) {
+  output$preview <- renderTable({
+    req(input$dataFile)
+    req(input$groupsFile)
+    req(input$dataFile)
+ })})
+```
+2.5 User defined constant input
+```{r}
+RCutoff <- as.numeric(0.85)
+MCutHeight <- as.numeric(0.25)
+PowerUpper <- as.numeric(20)
+minModuleSize <- as.numeric(20)
+IgnoreCols <- as.numeric(2)
+    
+```
+2.6 loading files
+```{r}
+allDataFile <- read.csv(file.choose())
+groupsFile <- read.csv(file.choose())
+
+# Transpose data so that genes are columns and samples are rows ----
+allDataFile_t <- as.data.frame(t(allDataFile[,-c(1:IgnoreCols)]) )
+# column names and row names are now switched.
+rownames(allDataFile_t) <- colnames(allDataFile)[-c(1:IgnoreCols)]
+colnames(allDataFile_t) <- allDataFile[,1]
+```
+2.7 WGCNA Workflow starts
+```{r}
+allowWGCNAThreads()
+    # Choose a set of soft-thresholding powers
+    powers <- c(c(1:10), seq(from = 12, to=PowerUpper, by=2))
+        
+    # Call the network topology analysis function
+    # Add control flow for automatic versus fixed power transformations
+    sft <- pickSoftThreshold(allDataFile_t, powerVector = powers, RsquaredCut = RCutoff, verbose = 5)
+     #Output all files, so sft needs to output to the working directory. I will need to figure
+    # out how to output all the files into a temporary directory with a bunch of subfolders
+    #Dendrograms ----
+    softPower <- 12
+    # Build the adjacency table - use "signed" for proteomics data
+    # create control flow for signed versus unsigned data
+    adjacency <- adjacency(allDataFile_t, power = softPower, type="signed")
+```
+2.8 Turn adjacency into topological overlap distance
+```{r}
+TOM <- TOMsimilarity(adjacency)
+    dissTOM <- 1-TOM
+    
+    path <- getwd()
+    dir.create(file.path(path, "Results"))
+    
+    # Clustering using TOM-based dissimilarity
+    proTree <- hclust(as.dist(dissTOM), method = "average");
+    
+    
+    # Module identification using dynamic tree cut
+    dynamicMods <- cutreeDynamic(dendro = proTree, distM = dissTOM,
+                                 deepSplit = 2, pamRespectsDendro = FALSE,
+                                 minClusterSize = minModuleSize)
+    dynamicColors <- labels2colors(dynamicMods)
+```
+
+
+
+
