@@ -1,7 +1,7 @@
 # MetaNetwork
 A Weighted Gene Co-expression Network Analysis Rshiny Application
 
-## Installing MetaNetwork for the First Time
+## Installing MetaNetwork
 MetaNetwork requires the following packages to be loaded in an R session: 
 WGCNA, heatmap3, tidyverse, readxl, openxlsx, qtl, corrplot, BiocManager, allez. We recommend using RStudio to run MetaNetwork due to its user-friendly folder navigation interface.
 
