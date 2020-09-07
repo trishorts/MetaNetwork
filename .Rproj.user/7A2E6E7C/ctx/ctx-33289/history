@@ -1,0 +1,357 @@
+library(devtools)
+dir.create("tests")
+?context
+?fileInput
+library(shiny)
+?fileInput
+install.packages("grid.arrange")
+library(gridExtra)
+library(grid)
+library(ggplot2)
+?grid.arrange
+?grid.arrange
+data <- cbind(rnorm(n = 100, mean = 20, sd = 4), rnorm(n = 100, mean = 20, sd = 4))
+pdfFunctionTesting <- function(data){
+pdf("DataTesting.pdf")
+plot(data)
+dev.off()
+}
+pdfFunctionTesting(data)
+data <- cbind(rnorm(n = 100, mean = 20, sd = 4), rnorm(n = 100, mean = 20, sd = 4))
+pdfFunctionTesting <- function(data){
+pdf("DataTesting.pdf")
+plot(data)
+h = 0.2
+dev.off()
+}
+pdfFunctionTesting(data)
+pdfFunctionTesting <- function(data){
+pdf("DataTesting.pdf")
+plot(data)
+abline(h=RCutoff,col="red")
+dev.off()
+}
+pdfFunctionTesting(data)
+Rcutoff <- 0.85
+pdfFunctionTesting <- function(data, Rcutoff = Rcutoff){
+pdf("DataTesting.pdf")
+plot(data)
+abline(h=RCutoff,col="red")
+dev.off()
+}
+pdfFunctionTesting(data)
+Rcutoff <- 0.85
+pdfFunctionTesting(data, Rcutoff)
+Rcutoff <- 0.85
+pdfFunctionTesting <- function(data, Rcutoff = Rcutoff){
+pdf("DataTesting.pdf")
+plot(data)
+abline(h=RCutoff,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, Rcutoff)
+Rcutoff <- 0.85
+pdfFunctionTesting <- function(data, Rcutoff = Rcutoff){
+pdf("DataTesting.pdf")
+plot(data)
+abline(RCutoff,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, Rcutoff)
+pdfFunctionTesting <- function(data, Rcutoff){
+pdf("DataTesting.pdf")
+plot(data)
+abline(RCutoff,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, Rcutoff)
+?abline
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting <- function(data, scaleFreeThreshold){
+pdf("DataTesting.pdf")
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting <- function(data, scaleFreeThreshold){
+pdf("DataTesting.pdf")
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+plot.new(); dev.off()
+pdfFunctionTesting <- function(data, scaleFreeThreshold){
+plot.new(); dev.off()
+pdf("DataTesting.pdf")
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting <- function(data, scaleFreeThreshold){
+graphics.off()
+pdf("DataTesting.pdf")
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf"...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf"...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold,col="red")
+dev.off()
+}
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf"...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+View(pdfFunctionTesting)
+data <- cbind(rnorm(n = 100, mean = 20, sd = 4), rnorm(n = 100, mean = 20, sd = 4))
+Rcutoff <- 0.85
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf"...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf",...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+?abline
+pdfFunctionTesting <- function(data, scaleFreeThreshold, file = "DataTesting.pdf",...){
+graphics.off()
+pdf()
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting <- function(data, scaleFreeThreshold, fileName = "pdfPlot.pdf",...){
+graphics.off()
+pdf(file = fileName)
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+Rcutoff <- 20
+pdfFunctionTesting <- function(data, scaleFreeThreshold, fileName = "pdfPlot.pdf",...){
+graphics.off()
+pdf(file = fileName)
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+data <- cbind(rnorm(n = 100, mean = 20, sd = 4), rnorm(n = 100, mean = 20, sd = 4))
+Rcutoff <- 20
+pdfFunctionTesting <- function(data, scaleFreeThreshold, fileName = "pdfPlot.pdf",...){
+graphics.off()
+pdf(file = fileName)
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+set.seed(54321)
+data <- cbind(rnorm(n = 100, mean = 20, sd = 4), rnorm(n = 100, mean = 20, sd = 4))
+Rcutoff <- 20
+pdfFunctionTesting <- function(data, scaleFreeThreshold, fileName = "pdfPlot.pdf",...){
+graphics.off()
+pdf(file = fileName)
+plot(data)
+abline(h = scaleFreeThreshold, col="red")
+dev.off()
+}
+pdfFunctionTesting(data, scaleFreeThreshold = Rcutoff)
+plotScalFreeTopology <- function(fileName = "Results/ScaleFreeTopology.pdf",
+cex1 = 0.9, scaleFreeThreshold){
+pdf(fileName, width = 10)
+par(mfrow = c(1,2));
+cex1 = 0.9;
+# Scale-free topology fit index as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+main = paste("Scale independence"));
+text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+labels=powers,cex=cex1,col="red");
+# this adds the red line corresponding to R^2. Default = 0.85
+abline(h=scaleFreeThreshold,col="red")
+# Mean connectivity as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+main = paste("Mean connectivity"))
+text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
+}
+plotSampleClusteringDendro <- function(dendro, fontSize = 15,
+fileName = "SampleClustering.pdf"){
+sampleClusteringQC  <- ggdendrogram(dendro)+
+ggtitle("Sample Clustering to Detect Outliers")+
+xlab("Sample")+
+ylab("Height")+
+theme_bw(base_size = fontSize)
+ggsave(filename = fileName, path = "Results", plot = last_plot())
+}
+PlotEigenproteinClusteringPostMerge <- function(preMergeDendroData,
+postMergeDendroData,
+fileName = "Results/ModuleEigenproteinMergeDendrogram.pdf",
+widthInches = 10){
+premergeDendro <- plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
+postmergeDendro <- plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
+sub = "")
+pdf(file = fileName, width = widthInches)
+par(mfrow = c(2,1))
+par(cex = 0.6)
+premergeDendro
+abline(h = MCutHeight, col = "red")
+postmergeDendro
+dev.off()
+}
+plotEigenproteinClusteringPostMerge <- function(preMergeDendroData,
+postMergeDendroData,
+fileName = "Results/ModuleEigenproteinMergeDendrogram.pdf",
+widthInches = 10){
+premergeDendro <- plot(METree, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
+postmergeDendro <- plot(mergedClust$dendro, main = "Clustering of module eigenproteins, post-merging", xlab = "",
+sub = "")
+pdf(file = fileName, width = widthInches)
+par(mfrow = c(2,1))
+par(cex = 0.6)
+premergeDendro
+abline(h = MCutHeight, col = "red")
+postmergeDendro
+dev.off()
+}
+plotEigenproteinClusteringPostMerge <- function(preMergeDendroData,
+postMergeDendroData,
+fileName = "Results/ModuleEigenproteinMergeDendrogram.pdf",
+widthInches = 10){
+premergeDendro <- plot(preMergeDendroData, main = "Clustering of module eigenproteins, pre-merging", xlab = "", sub = "")
+postmergeDendro <- plot(postMergeDendroData, main = "Clustering of module eigenproteins, post-merging", xlab = "",
+sub = "")
+pdf(file = fileName, width = widthInches)
+par(mfrow = c(2,1))
+par(cex = 0.6)
+premergeDendro
+abline(h = MCutHeight, col = "red")
+postmergeDendro
+dev.off()
+}
+library(WGCNA)
+?plotDendroAndColors
+?plotEigengeneNetworks
+plotEigenproteinsNetwork <- function(moduleEigenproteins,
+fileName = "Results/DendrogramEigenproteins.pdf",
+widthInches = 10){
+EigengeneNetworks <- plotEigengeneNetworks(MEs, "EigenproteinNetwork",
+marHeatmap = c(3,4,2,2),
+marDendro = c(3,4,2,5),
+plotDendrograms = TRUE,
+xLabelsAngle = 90,
+heatmapColors=blueWhiteRed(50))
+pdf(file = fileName, width = widthInches)
+plotEigengeneNetworks(MEs, "EigenproteinNetwork", marHeatmap = c(3,4,2,2), marDendro = c(3,4,2,5),
+plotDendrograms = TRUE, xLabelsAngle = 90,heatmapColors=blueWhiteRed(50))
+dev.off()
+}
+plotEigenproteinsNetwork <- function(moduleEigenproteins,
+fileName = "Results/DendrogramEigenproteins.pdf",
+widthInches = 10){
+EigengeneNetworks <- plotEigengeneNetworks(moduleEigenproteins, "EigenproteinNetwork",
+marHeatmap = c(3,4,2,2),
+marDendro = c(3,4,2,5),
+plotDendrograms = TRUE,
+xLabelsAngle = 90,
+heatmapColors=blueWhiteRed(50))
+pdf(file = fileName, width = widthInches)
+EigengeneNetworks
+dev.off()
+}
+plotmoduleEigenproteinsHeatmap <- function(moduleEigenproteins,
+fileName = "Results/ModuleEigenproteinsHeatmap.pdf",
+widthInches = 10){
+modulesHeatmap <- heatmap3(moduleEigenproteins,
+distfun = function(x) dist(x, method="euclidean"),
+main = "Module Eigenproteins",
+cexRow = 0.6, cexCol = 0.6)
+pdf(file = fileName, width = widthInches)
+heatmap3(moduleEigenproteins, distfun = function(x) dist(x, method="euclidean"),
+main = "Module Eigenproteins",
+cexRow = 0.6, cexCol = 0.6)
+dev.off()
+}
+plotTOM <- function(TOMData,
+proteinDendro,
+moduleColors,
+fileName = "Results/NetworkHeatmap.png"){
+tomplot <- TOMplot(TOMData, proteinDendro, moduleColors)
+dev.new()
+png(filename = fileName)
+tomplot
+dev.off()
+}
+plotAdjacencyHeatmap <- function(moduleEigenproteins,
+fileName = "Results/Eigenprotein_adjacency heatmap.pdf",
+widthInches = 10){
+MET <- orderMEs(MEs = moduleEigenproteins)
+EigenNetworksDendro <- plotEigengeneNetworks(MET, "Eigenprotein Dendrogram",
+marDendro = c(0,4,2,0), plotHeatmaps = FALSE)
+EigenNetworksHeatmap <- plotEigengeneNetworks(MET, "Eigenprotein adjacency heatmap",
+marDendro = c(3,4,2,2), xLabelsAngle = 90)
+pdf(file = fileName, width = widthInches)
+par(cex = 1.0)
+EigenNetworksDendro
+EigenNetworksHeatmap
+dev.off()
+}
+library(devtools)
+install_github(repo = "atbroman/allez")
+library(devtools)
+remove.packages("allez", lib="~/R/win-library/4.0")
+install_github(repo = "atbroman/allez", dependencies = TRUE)
+library(allez)
+## Install and load required packages for the first time
+installAndLoadRequiredPackages <- function(){
+packages.vec <- c("shiny", "devtools", "heatmap3", "WGCNA", "readxl",
+"openxlsx", "BiocManager", "tidyverse", "allez", "ggdendro")
+packages.to.install <- packages.vec[!packages.vec %in% installed.packages()[,"Package"]]
+if(packages.to.install>0){
+for(i in 1:length(packages.to.install)){
+if(packages.to.install == "allez"){
+library(devtools)
+install_github(repo = "atbroman/allez", dependencies = TRUE)
+}else if(packages.to.install == "WGCNA"){
+BiocManager::install("WGCNA")
+}
+install.packages(packages.to.install)
+}
+}
+lapply(packages.vec, library, character.only = TRUE)
+}
+installAndLoadRequiredPackages()
+remove.packages("allez", lib="~/R/win-library/4.0")
+remove.packages("tidyverse", lib="~/R/win-library/4.0")
+installAndLoadRequiredPackages()
