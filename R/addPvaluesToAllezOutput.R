@@ -1,3 +1,4 @@
+## Adapted from the enrich_shiny application found at https://github.com/lengning/Enrich_shiny
 addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize = 500, side = "T"){
   if(side=="F")outputAllez$p.value <- pnorm(-abs(outputAllez$z.score))# two tailed
   if(side=="T"){
@@ -7,12 +8,10 @@ addPvaluesToAllezOutput <- function(outputAllez, Lowersetsize = 5, Uppersetsize 
   outputAllez$p.adj <- p.adjust(outputAllez$p.value, method="BH")
   outputAllez <- outputAllez[which(outputAllez$set.size>Lowersetsize),]
   outputAllez <- outputAllez[which(outputAllez$set.size<Uppersetsize),]
-  outputAllezOut <- outputAllez[order(outputAllez$p.value),
-                                c("Term","p.value","p.adj","z.score",
-                                  "set.size","set.mean","set.sd")]
-  ## need to add the GO term [ ] 
-  ## need to add the gene in each GO term [ ] 
-  message("sets with size < ",Lowersetsize, " or > ", Uppersetsize, " are not considered" )
+  outputAllezOut <- outputAllez %>%
+    arrange(p.adj)
+
+    message("sets with size < ",Lowersetsize, " or > ", Uppersetsize, " are not considered" )
   
   message("Successfully added p-values to Allez Output")
   return(outputAllezOut)

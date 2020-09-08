@@ -5,7 +5,6 @@ installFunctions()
 installAndLoadRequiredPackages()
 
 
-
 # Options for this shiny session ----
 options(shiny.maxRequestSize = 30*1024^2) # increases the upload size allowed to 30 mb.
 
@@ -49,6 +48,7 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                   # Main panel ----
                                   mainPanel(
                                     ## Need to output the table again. It got accidentally deleted
+                                    tableOutput("preview"),
                                     textOutput(outputId = "workflowOutput")
                                   ) 
                                   
@@ -64,7 +64,7 @@ ui <- shinyUI(navbarPage("WGCNA and GO analysis",
                                   mainPanel()
                           )
                                   
-)
+  )
 )
 
 

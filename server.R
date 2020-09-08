@@ -53,7 +53,7 @@ server <- shinyServer(function(input, output) {
     dissTOM <- 1-TOM
     message("dissimilarity TOM matrix successfully created")
     # Clustering using TOM-based dissimilarity
-    proTree <- hclust(as.dist(dissTOM), method = "average");
+    proTree <- hclust(as.dist(dissTOM), method = "average")
     
     path <- getwd()
     message("Creating results folder")
@@ -219,23 +219,10 @@ server <- shinyServer(function(input, output) {
       speciesLibrary <- 'org.Mm.eg'
     }
     
+    ModuleNames2 <- names(wgcnaResults)[2:length(wgcnaResults)]
     ## The next three things will probably end up as a single function
     ## Convert the Uniprot Acessions to Gene Symbols for each sample 
-    sheetNumber <- length(wgcnaResults)
-    UniprotAcessions <- list()
-    for(i in seq_len(sheetNumber)){
-      UniprotAcessions[[i]] <- wgcnaResults[[i]][,1]
-    }
-    ModuleNames <- names(wgcnaResults)
-    ModuleNames2 <- names(wgcnaResults)[2:length(wgcnaResults)]
-    names(UniprotAcessions) <- ModuleNames
-    
-    ConvertedGeneSymbols <- list()
-    for(i in seq_len(sheetNumber)){
-      ConvertedGeneSymbols[[i]] <- getBM(attributes = "external_gene_name", 
-                                         filters = "uniprot_gn_id", mart = mart, 
-                                         values = UniprotAcessions[[i]])$external_gene_name
-    }
+    ConvertedGeneSymbols <- convertAccessions(wgcnaResults = wgcnaResults, mart = mart)
     
     geneUniverse <- unique(ConvertedGeneSymbols[[1]])
     ConvertedGeneSymbolsWithoutUniverse <- ConvertedGeneSymbols[2:length(ConvertedGeneSymbols)]
@@ -248,14 +235,6 @@ server <- shinyServer(function(input, output) {
                                    SpeciesLibrary = speciesLibrary) #species library 
       # is defined in the control flow in lines 462-473
     }
-    
-    
-    AllezPvalues <- list()
-    for(i in 1:length(AllezEnriched)){
-      AllezPvalues[[i]] <- addPvaluesToAllezOutput(outputAllez = AllezEnriched[[i]][[1]])
-    }
-    names(AllezPvalues) <- ModuleNames2
-    
     
     ## Create the workbook with the Allez sheets 
     createAllezEnrichmentXLSX(geneUniverse, AllezPvalues)

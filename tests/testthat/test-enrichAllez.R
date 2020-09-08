@@ -2,11 +2,20 @@
 require(org.Hs.eg.db)
 require(org.Mm.eg.db)
 require(tidyverse)
-testUniverse <- read_csv(file.path("tests", "TestDataSet", "Unsupervised_data.csv"))[[1]]
-LightCyanTestAccessions <- base::as.vector(read_table(file.path("tests", "TestDataSet", "LightCyanTestAccessions.txt"), 
-                                      col_names = FALSE)[[1]])
+require(biomaRt)
+require(testthat)
+testUniverse <- read_csv(file.path("tests", "TestDataSet", "Unsupervised_data.csv"))
+LightCyanTestAccessions <- read_csv("./tests/TestDataSet/LightCyanTestAccessions.txt", 
+                                    col_names = FALSE)
+mart <- fetchMart("Human")
+testGeneSymbols <- convertAccessions(LightCyanTestAccessions, mart = mart)
+testGeneSymbolsUniverse <- convertAccessions(testUniverse[1], mart = mart)
+testAllezEnrichment <- enrichAllez(GeneSymbols = testGeneSymbols[[1]], 
+            GeneUniverse = testGeneSymbolsUniverse[[1]])
+
+head(testAllezEnrichment$setscores)
 
 
-testAllezEnrichment <- enrichAllez(GeneSymbols = LightCyanTestAccessions, 
-            GeneUniverse = testUniverse)
 
+expect_equal(length(testAllezEnrichment$setscores$Term), 5224)
+expect_equal(base::colnames(testAllezEnrichment$setscores)[1], "GO_Term")
