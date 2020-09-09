@@ -154,8 +154,13 @@ server <- shinyServer(function(input, output) {
     
      # Create the .pdfs
       dir.create(file.path("Results", "EigenproteinsBySample"))
-      for(i in 1:length(unique(EigenProteinsFin[[]]))) ## Finish this
-      plotModuleEigenproteinsBySample(MEPs = EigenProteinsFin)
+      for(i in 1:length(unique(EigenProteinsFin[[3]]))){ 
+      plotModuleEigenproteinsBySample(MEPs = EigenProteinsFin, 
+                                      module = unique(EigenProteinsFin[[3]][i]), 
+                                      filename = paste("Results/", 
+                                                       "EigenproteinsBySample/",
+                                                       unique(EigenProteinsFin[[3]][i]), sep = ""))
+      }
       
      # Sample clustering quality control plot
       plotSampleClusteringDendro(sampleTree)

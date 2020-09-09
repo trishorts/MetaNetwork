@@ -13,7 +13,7 @@ mergeAndWriteWGCNAWorkbook <- function(selectedDatabase,
   dat.resMerged <- left_join(allData, 
                              userInputDatabaseSelectedColumns, 
                              by = names(allData)[1])
-  message("Error does not occur in Line 16")
+  #message("Error does not occur in Line 16")
   list.cluster.datMerged <- list()
   for(i in seq_along(dataList)){
     list.cluster.datMerged[[i]] <- left_join(dataList[[i]], 
