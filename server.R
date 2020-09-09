@@ -171,7 +171,7 @@ server <- shinyServer(function(input, output) {
                                         cutHeight = MCutHeight)
 
       # Plot the dendrogram following cluster merging ----
-      plotProteinDendrogram(proTree, 
+      plotProteinDendrogram(proTree,
                             dynamicColors = dynamicColors,
                             mergedColors = mergedColors)
 
