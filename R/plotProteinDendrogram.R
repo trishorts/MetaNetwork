@@ -3,11 +3,12 @@ plotProteinDendrogram <- function(proteinDendrogram,
   mergedColors){
 
   pdf("Results/DendroColorMergedClust.pdf")
-  plotDendroAndColors(proteinDendrogram,
-                      colors = cbind(dynamicColors, mergedColors),
-                      groupLabels = c("Dynamic Tree Cut", "Merged dynamic"),
+  plotDendroAndColors(proteinDendrogram, mergedColors,
+                      "Merged dynamic", rowText = mergedColors,
                       dendroLabels = FALSE, hang = 0.03,
-                      addGuide = TRUE, guideHang = 0.05)
+                      addGuide = TRUE, guideHang = 0.05, 
+                      rowTextAlignment = "left", 
+                      addTextGuide = TRUE)
   dev.off()
   message("Protein dendrogram generated")
 }

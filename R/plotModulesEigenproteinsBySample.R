@@ -1,7 +1,9 @@
 plotModuleEigenproteinsBySample <- function(MEPs, module, filename){
   selectedEigenproteinModule <- MEPs%>%
     filter(`Module` == module)
-  ggplot(data = selectedEigenproteinModule, mapping = aes(x = `ModuleEigenprotein`, y = `Experiment`))+
+  ggplot(data = selectedEigenproteinModule, 
+         mapping = aes(x = `ModuleEigenprotein`, 
+                       y = `Experiment`))+
     geom_col()+
     ggtitle(paste(module))+
     theme_bw(base_family = "Helvetica")
